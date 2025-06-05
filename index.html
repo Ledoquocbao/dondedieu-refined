@@ -157,15 +157,14 @@ header {
       allWines = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       renderWines(allWines);
     }
-
- function renderWines(wines) {
+function renderWines(wines) {
   const wineList = document.getElementById("wineList");
   wineList.innerHTML = "";
 
-  wines.forEach(wines => {
+  wines.forEach(wine => {      // <-- change from `wines` to `wine` here
     const card = document.createElement("a");
     card.className = "wine-card";
-    card.href = `wines.html?id=${wines.id}`;
+    card.href = `wines.html?id=${wine.id}`;  // use `wine.id`
     card.style.textDecoration = "none";
     card.style.color = "inherit";
 
@@ -180,6 +179,7 @@ header {
     wineList.appendChild(card);
   });
 }
+
 
 
     // Filter, search and sort
