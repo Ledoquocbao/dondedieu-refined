@@ -1,135 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Wine Details - Don De Dieu</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    max-width: 700px;
-    margin: 30px auto;
-    padding: 0 20px;
-    background: #f5f0f0;
-    color: #4b1c1c;
-  }
-  h1 {
-    color: #800000;
-    text-align: center;
-  }
-  .wine-container {
-    background: white;
-    border: 2px solid #800000;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 2px 2px 8px rgba(128,0,0,0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .wine-image {
-    max-width: 100%;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 10px;
-    margin-bottom: 20px;
-  }
-  .wine-name {
-    font-size: 2em;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  .wine-type {
-    font-style: italic;
-    color: #b94a4a;
-    margin-bottom: 15px;
-  }
-  .wine-price {
-    font-weight: 700;
-    font-size: 1.2em;
-    margin-bottom: 20px;
-    color: #800000;
-  }
-  .wine-description {
-    font-size: 1em;
-    line-height: 1.5;
-  }
-  a.back-link {
-    display: inline-block;
-    margin-top: 30px;
-    text-decoration: none;
-    color: #800000;
-    font-weight: 600;
-    border: 1.5px solid #800000;
-    padding: 8px 14px;
-    border-radius: 6px;
-    transition: background-color 0.3s ease;
-  }
-  a.back-link:hover {
-    background-color: #a32222;
-    color: white;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>Wine Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem;
+      background-color: #fef7f5;
+      color: #333;
+    }
+
+    .wine-detail {
+      max-width: 600px;
+      margin: auto;
+      text-align: center;
+    }
+
+    img {
+      max-width: 300px;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #7a0f0f;
+      margin-top: 1rem;
+    }
+
+    p {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      margin: 0.5rem 0;
+    }
+
+    .back-button {
+      margin-top: 2rem;
+    }
+
+    .back-button a button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background-color: #7a0f0f;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .back-button a button:hover {
+      background-color: #a30000;
+    }
+  </style>
 </head>
 <body>
+  <div class="wine-detail">
+    <img id="wineImg" src="" alt="Wine Image">
+    <h1 id="wineName">Loading...</h1>
+    <p><strong>Type:</strong> <span id="wineType"></span></p>
+    <p><strong>Price:</strong> $<span id="winePrice"></span></p>
+    <p id="wineDesc"></p>
 
-<h1>Wine Details</h1>
+    <div class="back-button">
+      <a href="index.html">
+        <button>← Back to All Wines</button>
+      </a>
+    </div>
+  </div>
 
-<div class="wine-container" id="wineContainer">
-  Loading wine details...
-</div>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
-<a href="index.html" class="back-link">← Back to Wines List</a>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCyhbQKmQO6fPgvc5ZukXe1SmY_dVIPn0U",
+      authDomain: "dondedieubackend.firebaseapp.com",
+      projectId: "dondedieubackend",
+      storageBucket: "dondedieubackend.firebasestorage.app",
+      messagingSenderId: "476264005167",
+      appId: "1:476264005167:web:726592f6b92ca8499bd0da"
+    };
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCyhbQKmQO6fPgvc5ZukXe1SmY_dVIPn0U",
-    authDomain: "dondedieubackend.firebaseapp.com",
-    projectId: "dondedieubackend",
-    storageBucket: "dondedieubackend.firebasestorage.app",
-    messagingSenderId: "476264005167",
-    appId: "1:476264005167:web:726592f6b92ca8499bd0da"
-  };
+    const params = new URLSearchParams(window.location.search);
+    const wineId = params.get("id");
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const wineContainer = document.getElementById("wineContainer");
-
-  // Get wine id from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const wineId = urlParams.get("id");
-
-  if (!wineId) {
-    wineContainer.textContent = "No wine selected.";
-  } else {
     async function loadWine() {
-      try {
-        const docRef = doc(db, "wines", wineId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const wine = docSnap.data();
-          wineContainer.innerHTML = `
-            <img src="${wine.image}" alt="${wine.name}" class="wine-image" />
-            <div class="wine-name">${wine.name}</div>
-            <div class="wine-type">${wine.type}</div>
-            <div class="wine-price">$${wine.price.toFixed(2)}</div>
-            <div class="wine-description">${wine.description || "No description available."}</div>
-          `;
-        } else {
-          wineContainer.textContent = "Wine not found.";
-        }
-      } catch (error) {
-        wineContainer.textContent = "Error loading wine: " + error.message;
+      if (!wineId) return;
+      const wineDoc = await getDoc(doc(db, "wines", wineId));
+      if (wineDoc.exists()) {
+        const wine = wineDoc.data();
+        document.getElementById("wineImg").src = wine.image || '';
+        document.getElementById("wineName").textContent = wine.name;
+        document.getElementById("wineType").textContent = wine.type;
+        document.getElementById("winePrice").textContent = parseFloat(wine.price).toFixed(2);
+        document.getElementById("wineDesc").textContent = wine.description || "";
+      } else {
+        document.body.innerHTML = "<h2>Wine not found</h2>";
       }
     }
-    loadWine();
-  }
-</script>
 
+    loadWine();
+  </script>
 </body>
 </html>
