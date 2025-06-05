@@ -157,22 +157,25 @@ header {
       renderWines(allWines);
     }
 
-    function renderWines(wines) {
+    function renderWines(wine) {
   const wineList = document.getElementById("wineList");
   wineList.innerHTML = "";
 
   wines.forEach(wine => {
-    const card = document.createElement("div");
+    const card = document.createElement("a");
     card.className = "wine-card";
+    card.href = `wine.html?id=${wine.id}`;
+    card.style.textDecoration = "none";
+    card.style.color = "inherit";
+
     card.innerHTML = `
-      <a href="wine.html?id=${wine.id}" style="text-decoration:none; color:inherit;">
-        <img src="${wine.image || ''}" alt="${wine.name}">
-        <h3>${wine.name}</h3>
-        <p>Type: ${wine.type}</p>
-        <p>Price: $${parseFloat(wine.price).toFixed(2)}</p>
-        <p>${wine.description || ""}</p>
-      </a>
+      <img src="${wine.image || ''}" alt="${wine.name}">
+      <h3>${wine.name}</h3>
+      <p>Type: ${wine.type}</p>
+      <p>Price: $${parseFloat(wine.price).toFixed(2)}</p>
+      <p>${wine.description || ""}</p>
     `;
+
     wineList.appendChild(card);
   });
 }
