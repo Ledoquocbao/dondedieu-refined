@@ -168,7 +168,7 @@ header {
     card.href = `wine.html?id=${wine.id}`;
     card.style.textDecoration = "none";
     card.style.color = "inherit";
-
+    card.style.display = "block";
     card.innerHTML = `
       <img src="${wine.image || ''}" alt="${wine.name}">
       <h3>${wine.name}</h3>
