@@ -91,10 +91,10 @@
     const db = getFirestore(app);
 
     const params = new URLSearchParams(window.location.search);
-    const wineId = params.get("id");
+    const wineid = params.get("id");
 
     async function loadWine() {
-      if (!wineId) return;
+      if (!wineid) return;
       const wineDoc = await getDoc(doc(db, "wines", wineid));
       if (wineDoc.exists()) {
         const wine = wineDoc.data();
