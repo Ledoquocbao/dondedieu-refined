@@ -154,7 +154,7 @@ header {
 
     async function fetchWines() {
       const snapshot = await getDocs(wineRef);
-      allWines = snapshot.docs.map(doc => doc.data());
+      allWines = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       renderWines(allWines);
     }
 
