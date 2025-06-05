@@ -157,11 +157,11 @@ header {
       renderWines(allWines);
     }
 
-    function renderWines(wine) {
+    function renderWines(wines) {
   const wineList = document.getElementById("wineList");
   wineList.innerHTML = "";
 
-  wines.forEach(wine => {
+  wines.forEach(wines => {
     const card = document.createElement("a");
     card.className = "wine-card";
     card.href = `wine.html?id=${wine.id}`;
