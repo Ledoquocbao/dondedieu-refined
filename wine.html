@@ -95,7 +95,7 @@
 
     async function loadWine() {
       if (!wineId) return;
-      const wineDoc = await getDoc(doc(db, "wines", wineId));
+      const wineDoc = await getDoc(doc(db, "wines", wineid));
       if (wineDoc.exists()) {
         const wine = wineDoc.data();
         document.getElementById("wineImg").src = wine.image || '';
