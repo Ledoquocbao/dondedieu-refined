@@ -158,12 +158,28 @@ header {
       renderWines(allWines);
     }
 
+ function renderWines(wines) {
   const wineList = document.getElementById("wineList");
-wineList.innerHTML = `
-  <a href="wine.html?id=test" class="wine-card" style="display:block; padding:20px; border:1px solid #000;">
-    Test Wine Card (Click me!)
-  </a>
-`;
+  wineList.innerHTML = "";
+
+  wines.forEach(wine => {
+    const card = document.createElement("a");
+    card.className = "wine-card";
+    card.href = `wine.html?id=${wine.id}`;
+    card.style.textDecoration = "none";
+    card.style.color = "inherit";
+
+    card.innerHTML = `
+      <img src="${wine.image || ''}" alt="${wine.name}">
+      <h3>${wine.name}</h3>
+      <p>Type: ${wine.type}</p>
+      <p>Price: $${parseFloat(wine.price).toFixed(2)}</p>
+      <p>${wine.description || ""}</p>
+    `;
+
+    wineList.appendChild(card);
+  });
+}
 
 
     // Filter, search and sort
