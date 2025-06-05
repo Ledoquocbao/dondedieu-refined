@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wine Details - Don De Dieu</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 20px;
+    background: #f5f0f0;
+    color: #4b1c1c;
+  }
+  h1 {
+    color: #800000;
+    text-align: center;
+  }
+  .wine-container {
+    background: white;
+    border: 2px solid #800000;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 2px 2px 8px rgba(128,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .wine-image {
+    max-width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  .wine-name {
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .wine-type {
+    font-style: italic;
+    color: #b94a4a;
+    margin-bottom: 15px;
+  }
+  .wine-price {
+    font-weight: 700;
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    color: #800000;
+  }
+  .wine-description {
+    font-size: 1em;
+    line-height: 1.5;
+  }
+  a.back-link {
+    display: inline-block;
+    margin-top: 30px;
+    text-decoration: none;
+    color: #800000;
+    font-weight: 600;
+    border: 1.5px solid #800000;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+  }
+  a.back-link:hover {
+    background-color: #a32222;
+    color: white;
+  }
+</style>
+</head>
+<body>
+
+<h1>Wine Details</h1>
+
+<div class="wine-container" id="wineContainer">
+  Loading wine details...
+</div>
+
+<a href="index.html" class="back-link">← Back to Wines List</a>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCyhbQKmQO6fPgvc5ZukXe1SmY_dVIPn0U",
+    authDomain: "dondedieubackend.firebaseapp.com",
+    projectId: "dondedieubackend",
+    storageBucket: "dondedieubackend.firebasestorage.app",
+    messagingSenderId: "476264005167",
+    appId: "1:476264005167:web:726592f6b92ca8499bd0da"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const wineContainer = document.getElementById("wineContainer");
+
+  // Get wine id from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const wineId = urlParams.get("id");
+
+  if (!wineId) {
+    wineContainer.textContent = "No wine selected.";
+  } else {
+    async function loadWine() {
+      try {
+        const docRef = doc(db, "wines", wineId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const wine = docSnap.data();
+          wineContainer.innerHTML = `
+            <img src="${wine.image}" alt="${wine.name}" class="wine-image" />
+            <div class="wine-name">${wine.name}</div>
+            <div class="wine-type">${wine.type}</div>
+            <div class="wine-price">$${wine.price.toFixed(2)}</div>
+            <div class="wine-description">${wine.description || "No description available."}</div>
+          `;
+        } else {
+          wineContainer.textContent = "Wine not found.";
+        }
+      } catch (error) {
+        wineContainer.textContent = "Error loading wine: " + error.message;
+      }
+    }
+    loadWine();
+  }
+</script>
+
+</body>
+</html>

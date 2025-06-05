@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Don De Dieu - Wines</title>
+  <style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background-color: #fefefe;
+  color: #333;
+}
+
+header {
+  background-color: #7a0f0f;
+  color: white;
+  padding: 1.2rem;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #fff8f8;
+  padding: 1rem;
+  justify-content: center;
+  position: sticky;
+  top: 72px;
+  z-index: 9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filters select,
+.filters input,
+.filters button {
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  min-width: 150px;
+  transition: all 0.3s ease;
+}
+
+.filters button {
+  background-color: #8b0000;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.filters button:hover {
+  background-color: #a30000;
+}
+
+.wine-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 24px;
+  padding: 2rem;
+}
+
+@media (min-width: 900px) {
+  .wine-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.wine-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease;
+}
+
+.wine-card:hover {
+  transform: translateY(-5px);
+}
+
+.wine-card img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+.wine-card h3 {
+  margin: 0.75rem 0 0.2rem;
+  font-size: 1.2rem;
+  color: #7a0f0f;
+}
+
+.wine-card p {
+  margin: 0.2rem 0;
+  font-size: 0.95rem;
+  padding: 0 0.8rem;
+}
+
+  </style>
+</head>
+<body>
+  <header>Don De Dieu</header>
+
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Search wines..." />
+    <select id="typeFilter">
+      <option value="">All Types</option>
+      <option value="Red">Red</option>
+      <option value="White">White</option>
+      <option value="Sparkling">Sparkling</option>
+    </select>
+    <select id="sortSelect">
+      <option value="">Sort by</option>
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+      <option value="name-asc">A → Z</option>
+      <option value="name-desc">Z → A</option>
+    </select>
+    <button onclick="resetFilters()">Reset</button>
+  </div>
+
+  <div id="wineList" class="wine-grid"></div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCyhbQKmQO6fPgvc5ZukXe1SmY_dVIPn0U",
+      authDomain: "dondedieubackend.firebaseapp.com",
+      projectId: "dondedieubackend",
+      storageBucket: "dondedieubackend.firebasestorage.app",
+      messagingSenderId: "476264005167",
+      appId: "1:476264005167:web:726592f6b92ca8499bd0da"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const wineRef = collection(db, "wines");
+
+    let allWines = [];
+
+    async function fetchWines() {
+      const snapshot = await getDocs(wineRef);
+      allWines = snapshot.docs.map(doc => doc.data());
+      renderWines(allWines);
+    }
+
+    function renderWines(wines) {
+      const wineList = document.getElementById("wineList");
+      wineList.innerHTML = "";
+
+      wines.forEach(wine => {
+        const card = document.createElement("div");
+        card.className = "wine-card";
+        card.innerHTML = `
+          <img src="${wine.image || ''}" alt="${wine.name}">
+          <h3>${wine.name}</h3>
+          <p>Type: ${wine.type}</p>
+          <p>Price: $${parseFloat(wine.price).toFixed(2)}</p>
+          <p>${wine.description || ""}</p>
+        `;
+        wineList.appendChild(card);
+      });
+    }
+
+    // Filter, search and sort
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+    document.getElementById("typeFilter").addEventListener("change", applyFilters);
+    document.getElementById("sortSelect").addEventListener("change", applyFilters);
+
+    function applyFilters() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const type = document.getElementById("typeFilter").value;
+      const sort = document.getElementById("sortSelect").value;
+
+      let filtered = allWines.filter(w => 
+        (!type || w.type === type) &&
+        (!search || w.name.toLowerCase().includes(search))
+      );
+
+      if (sort === "price-asc") filtered.sort((a, b) => a.price - b.price);
+      else if (sort === "price-desc") filtered.sort((a, b) => b.price - a.price);
+      else if (sort === "name-asc") filtered.sort((a, b) => a.name.localeCompare(b.name));
+      else if (sort === "name-desc") filtered.sort((a, b) => b.name.localeCompare(a.name));
+
+      renderWines(filtered);
+    }
+
+    function resetFilters() {
+      document.getElementById("searchInput").value = "";
+      document.getElementById("typeFilter").value = "";
+      document.getElementById("sortSelect").value = "";
+      renderWines(allWines);
+    }
+
+    fetchWines();
+  </script>
+</body>
+</html>

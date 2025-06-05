@@ -1,0 +1,238 @@
+<script>
+    const ADMIN_PASSWORD = "Ham ruou vang Don De Dieu"; // 🔒 Change this!
+  
+    if (!sessionStorage.getItem("adminAuthenticated")) {
+      const input = prompt("Enter admin password:");
+      if (input !== ADMIN_PASSWORD) {
+        alert("Incorrect password!");
+        window.location.href = "index.html"; // Redirect if wrong
+      } else {
+        sessionStorage.setItem("adminAuthenticated", "true");
+      }
+    }
+  </script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Don De Dieu - Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f8f4f4;
+    }
+    h1 {
+      color: #800000;
+    }
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      box-shadow: 0 0 8px rgba(128, 0, 0, 0.2);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #800000;
+    }
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      margin-top: 20px;
+      background: #800000;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #b22222;
+    }
+    .wine-list {
+      margin-top: 40px;
+      max-width: 700px;
+    }
+    .wine-item {
+      background: white;
+      border: 1px solid #800000;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: inherit;
+    }
+    .wine-item div {
+      max-width: 70%;
+    }
+    .wine-item button {
+      background: #b22222;
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Don De Dieu Admin Panel</h1>
+
+  <form id="wineForm">
+    <input type="hidden" id="wineId" />
+
+    <label for="name">Name:</label>
+    <input type="text" id="name" required />
+
+    <label for="price">Price:</label>
+    <input type="number" id="price" min="0" step="0.01" required />
+
+    <label for="type">Type:</label>
+    <select id="type" required>
+      <option value="">Select type</option>
+      <option value="red">Red</option>
+      <option value="white">White</option>
+      <option value="sparkling">Sparkling</option>
+    </select>
+
+    <label for="image">Image URL:</label>
+    <input type="text" id="image" placeholder="Enter image URL" required />
+
+    <label for="description">Description:</label>
+    <textarea id="description" rows="4" placeholder="Enter wine description"></textarea>
+
+    <button type="submit">Save Wine</button>
+  </form>
+
+  <div class="wine-list" id="wineList"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      setDoc,
+      deleteDoc,
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCyhbQKmQO6fPgvc5ZukXe1SmY_dVIPn0U",
+      authDomain: "dondedieubackend.firebaseapp.com",
+      projectId: "dondedieubackend",
+      storageBucket: "dondedieubackend.firebasestorage.app",
+      messagingSenderId: "476264005167",
+      appId: "1:476264005167:web:726592f6b92ca8499bd0da",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const wineForm = document.getElementById("wineForm");
+    const wineList = document.getElementById("wineList");
+
+    const wineIdInput = document.getElementById("wineId");
+    const nameInput = document.getElementById("name");
+    const priceInput = document.getElementById("price");
+    const typeInput = document.getElementById("type");
+    const imageInput = document.getElementById("image");
+    const descriptionInput = document.getElementById("description");
+
+    async function loadWines() {
+      wineList.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "wines"));
+      querySnapshot.forEach((docSnap) => {
+        const wine = docSnap.data();
+        const id = docSnap.id;
+        const wineDiv = document.createElement("div");
+        wineDiv.className = "wine-item";
+        wineDiv.innerHTML = `
+          <div>
+            <strong>${wine.name}</strong> (${wine.type}) - $${wine.price.toFixed(2)}
+            <br />
+            <small>${wine.description || ""}</small>
+          </div>
+          <div>
+            <button onclick="editWine('${id}')">Edit</button>
+            <button onclick="deleteWine('${id}')">Delete</button>
+          </div>
+        `;
+        wineList.appendChild(wineDiv);
+      });
+    }
+
+    window.editWine = async function (id) {
+      const docRef = doc(db, "wines", id);
+      const docSnap = await getDocs(docRef);
+      if (docSnap.exists()) {
+        const wine = docSnap.data();
+        wineIdInput.value = id;
+        nameInput.value = wine.name || "";
+        priceInput.value = wine.price || "";
+        typeInput.value = wine.type || "";
+        imageInput.value = wine.image || "";
+        descriptionInput.value = wine.description || "";
+      }
+    };
+
+    window.deleteWine = async function (id) {
+      if (confirm("Are you sure you want to delete this wine?")) {
+        await deleteDoc(doc(db, "wines", id));
+        alert("Wine deleted.");
+        loadWines();
+      }
+    };
+
+    wineForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const wineData = {
+        name: nameInput.value.trim(),
+        price: parseFloat(priceInput.value),
+        type: typeInput.value,
+        image: imageInput.value.trim(),
+        description: descriptionInput.value.trim(),
+      };
+
+      const id = wineIdInput.value;
+
+      if (id) {
+        // Update existing wine
+        await setDoc(doc(db, "wines", id), wineData);
+        alert("Wine updated.");
+      } else {
+        // Create new wine with auto ID
+        const newDocRef = doc(collection(db, "wines"));
+        await setDoc(newDocRef, wineData);
+        alert("Wine added.");
+      }
+
+      wineForm.reset();
+      wineIdInput.value = "";
+      loadWines();
+    });
+
+    loadWines();
+  </script>
+</body>
+</html>
